@@ -36,6 +36,7 @@ ufw default allow outgoing
 ufw allow OpenSSH
 ufw allow from 192.168.0.0/16 to any port 8080 proto tcp   # Nextcloud na rede local
 ufw allow from 192.168.0.0/16 to any port 9443 proto tcp   # Portainer na rede local
+ufw allow from 192.168.0.0/16 to any port 3000 proto tcp   # Open WebUI (IA) na rede local
 ufw allow in on tailscale0                                 # tudo via Tailscale
 ufw --force enable
 

@@ -50,6 +50,29 @@ services:
     volumes:
       - ${DATA_DIR}/nextcloud:/var/www/html
 
+  # IA local: roda os modelos no processador (sem internet, sem custo)
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    environment:
+      OLLAMA_MAX_LOADED_MODELS: 1   # só um modelo na RAM por vez
+      OLLAMA_KEEP_ALIVE: 10m        # libera a RAM após 10 min sem uso
+    volumes:
+      - ${DATA_DIR}/ollama:/root/.ollama
+
+  # Chat no navegador para a IA local
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    depends_on:
+      - ollama
+    ports:
+      - "3000:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - ${DATA_DIR}/open-webui:/app/backend/data
+
   # Painel web para gerenciar os containers
   portainer:
     image: portainer/portainer-ce:lts

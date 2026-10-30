@@ -14,6 +14,8 @@ Transforma um PC/notebook antigo em um servidor de nuvem pessoal (estilo Google 
  │   ├─ MariaDB           → banco de dados                   │
  │   ├─ Redis             → cache (deixa mais rápido)        │
  │   ├─ Cron              → tarefas em segundo plano         │
+ │   ├─ Ollama            → IA local (roda os modelos)       │
+ │   ├─ Open WebUI :3000  → chat da IA no navegador          │
  │   └─ Portainer  :9443  → painel para gerenciar containers │
  │                                                           │
  │  /srv/nuvem  → todos os dados                             │
@@ -118,6 +120,7 @@ A primeira inicialização leva alguns minutos.
 |---|---|---|
 | Nextcloud | `http://192.168.0.100:8080` | `http://100.x.x.x:8080` |
 | Portainer | `https://192.168.0.100:9443` | `https://100.x.x.x:9443` |
+| IA (Open WebUI) | `http://192.168.0.100:3000` | `http://100.x.x.x:3000` |
 
 - **Nextcloud:** entre com `NC_ADMIN_USER` / `NC_ADMIN_PASSWORD`. Crie um usuário comum para o dia a dia.
 - **Portainer:** crie a senha de admin no primeiro acesso (em até 5 min após subir).
@@ -139,6 +142,32 @@ Adicione a linha (ajuste os caminhos):
 
 O backup guarda 7 dias; cópias diárias reaproveitam arquivos não alterados (hard links), então ocupam pouco espaço extra.
 
+## Etapa 7 — IA local
+
+O **Ollama** roda modelos de IA no próprio servidor (grátis, offline, privado) e o **Open WebUI** dá a interface de chat.
+
+1. Baixe os modelos (uma vez só; ficam em `/srv/nuvem/ollama`):
+
+   ```bash
+   docker compose exec ollama ollama pull qwen3:4b   # rápido, para o dia a dia (~3 GB)
+   docker compose exec ollama ollama pull qwen3:8b   # mais inteligente, mais lento (~5 GB)
+   ```
+
+2. Acesse `http://IP-DO-SERVIDOR:3000`. A **primeira conta criada vira administrador**; depois desative novos cadastros em *Painel de administração → Configurações*.
+
+**Expectativa para Ryzen 5 (6 núcleos) + 16 GB, só processador** (estimativa):
+
+| Modelo | Velocidade aproximada | Uso |
+|---|---|---|
+| `qwen3:4b` | ~10–20 palavras/s | Perguntas rápidas, resumos, textos curtos |
+| `qwen3:8b` | ~5–10 palavras/s | Respostas melhores, mais paciência |
+
+> Os nomes dos modelos mudam com o tempo. Veja os disponíveis em <https://ollama.com/library>. Com 16 GB, fique em modelos de até ~8B parâmetros: o Nextcloud e o sistema também precisam de RAM.
+
+**Placa de vídeo GT 1030:** tem só 2 GB de memória, pouco para modelos úteis, e o Ryzen faz o trabalho tão bem quanto. Por isso a configuração usa apenas o processador.
+
+**Divisão de tarefas sugerida:** IA local para o que é simples ou privado (documentos pessoais, rascunhos); Claude para tarefas difíceis (código, análises longas).
+
 ---
 
 ## Manutenção
@@ -151,6 +180,7 @@ O backup guarda 7 dias; cópias diárias reaproveitam arquivos não alterados (h
 | Atualizar o sistema | automático (unattended-upgrades) |
 | Comando do Nextcloud | `docker compose exec -u www-data nextcloud php occ status` |
 | Uso de recursos | `docker stats` |
+| Listar / remover modelos de IA | `docker compose exec ollama ollama list` / `ollama rm NOME` |
 
 ## Problemas comuns
 
